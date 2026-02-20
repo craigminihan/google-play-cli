@@ -1,4 +1,4 @@
-FROM eclipse-temurin:23-jre-alpine AS builder
+FROM eclipse-temurin:25-jre-alpine AS builder
 
 ARG PLAY_CLI_VERSION
 
@@ -10,7 +10,7 @@ RUN wget -q "https://github.com/Vacxe/google-play-cli-kt/releases/download/${PLA
     tar -xvf "google-play-cli.tar" -C /opt && \
     rm "google-play-cli.tar"
 
-FROM eclipse-temurin:23-jre-alpine AS app
+FROM eclipse-temurin:25-jre-alpine AS app
 
 # copy the cli binaries
 COPY --from=builder /opt/google-play-cli /opt/google-play-cli
