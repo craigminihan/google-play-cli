@@ -1,15 +1,24 @@
-FROM eclipse-temurin:23-jdk
+FROM eclipse-temurin:23-jre-alpine AS builder
 
 ARG PLAY_CLI_VERSION
 
-RUN apt-get update
-RUN apt-get install -y wget unzip jq
+RUN apk update && \
+    apk add wget
 
 # Install released Version from artefacts
-RUN wget -q "https://github.com/Vacxe/google-play-cli-kt/releases/download/$PLAY_CLI_VERSION/google-play-cli.tar" && \
-    tar -xvf "google-play-cli.tar" -C /usr/local &&  \
+RUN wget -q "https://github.com/Vacxe/google-play-cli-kt/releases/download/${PLAY_CLI_VERSION}/google-play-cli.tar" && \
+    tar -xvf "google-play-cli.tar" -C /opt && \
     rm "google-play-cli.tar"
 
-ENV PATH="${PATH}:/usr/local/google-play-cli/bin/"
+FROM eclipse-temurin:23-jre-alpine AS app
 
-RUN echo "CLI version:" && google-play-cli version
+# copy the cli binaries
+COPY --from=builder /opt/google-play-cli /opt/google-play-cli
+
+# soft link the cli to /usr/local/bin and check it works ok
+RUN ln -s /opt/google-play-cli/bin/google-play-cli /usr/local/bin/google-play-cli && \
+    echo "CLI version:" && google-play-cli version
+
+# set the entrypoint to the cli and default args to `--help`
+ENTRYPOINT [ "google-play-cli" ]
+CMD [ "--help" ]
